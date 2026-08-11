@@ -1,7 +1,36 @@
-npm-debug.log
 node_modules
+.pnp
+.pnp.js
+
+# next.js
+/.next/
+/out/
+next-env.d.ts
+*.tsbuildinfo
+
+# production
+/build
+
+# testing
+/coverage
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache
+
+# document store data
+data
+data-e2e
+
+# misc
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 *.swp
 *.swo
-data
-*.DS_Store
+.DS_Store
 docker-compose.override.yml
+
+# env
+.env
+.env*.local

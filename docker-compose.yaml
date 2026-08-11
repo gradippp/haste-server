@@ -1,12 +1,106 @@
-version: '3.0'
 services:
   haste-server:
     build: .
-    environment:
-      - STORAGE_TYPE=memcached
-      - STORAGE_HOST=memcached
-      - STORAGE_PORT=11211
     ports:
-      - 7777:7777
-  memcached:
-    image: memcached:latest
+      - "3000:3000"
+    environment:
+      STORAGE_TYPE: redis
+      STORAGE_HOST: redis
+      STORAGE_PORT: 6379
+      STORAGE_DB: 0
+      # Documents expire after 30 days. Remove to keep them forever.
+      STORAGE_EXPIRE_SECONDS: 2592000
+      KEYGENERATOR_TYPE: phonetic
+      KEY_LENGTH: 10
+      MAX_LENGTH: 400000
+      LOGGING_LEVEL: info
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+
+# ---------------------------------------------------------------------------
+# Other storage backends
+#
+# Each needs its driver installed in the image — add it to the `deps` stage,
+# e.g. `RUN pnpm add pg`. Uncomment the service you want, point the
+# haste-server `environment` block at it, and drop the redis service.
+#
+#  postgres:
+#    image: postgres:16-alpine
+#    environment:
+#      POSTGRES_USER: haste
+#      POSTGRES_PASSWORD: haste
+#      POSTGRES_DB: haste
+#    volumes:
+#      - postgres-data:/var/lib/postgresql/data
+#    healthcheck:
+#      test: ["CMD-SHELL", "pg_isready -U haste"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+#    # haste-server environment:
+#    #   STORAGE_TYPE: postgres
+#    #   STORAGE_HOST: postgres
+#    #   STORAGE_PORT: 5432
+#    #   STORAGE_USERNAME: haste
+#    #   STORAGE_PASSWORD: haste
+#    #   STORAGE_DB: haste
+#
+#  mariadb:
+#    image: mariadb:11
+#    environment:
+#      MARIADB_ROOT_PASSWORD: haste
+#      MARIADB_DATABASE: haste
+#      MARIADB_USER: haste
+#      MARIADB_PASSWORD: haste
+#    volumes:
+#      - mariadb-data:/var/lib/mysql
+#    healthcheck:
+#      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+#    # haste-server environment:
+#    #   STORAGE_TYPE: mariadb
+#    #   STORAGE_HOST: mariadb
+#    #   STORAGE_PORT: 3306
+#    #   STORAGE_USERNAME: haste
+#    #   STORAGE_PASSWORD: haste
+#    #   STORAGE_DB: haste
+#
+#  memcached:
+#    image: memcached:1-alpine
+#    # haste-server environment:
+#    #   STORAGE_TYPE: memcached
+#    #   STORAGE_HOST: memcached
+#    #   STORAGE_PORT: 11211
+#
+#  mongo:
+#    image: mongo:7
+#    volumes:
+#      - mongo-data:/data/db
+#    # haste-server environment:
+#    #   STORAGE_TYPE: mongo
+#    #   STORAGE_CONNECTION_URL: mongodb://mongo:27017/haste
+#
+# To use the plain file store instead of any database, set
+# STORAGE_TYPE=file and mount a volume at /app/data:
+#
+#    volumes:
+#      - haste-data:/app/data
