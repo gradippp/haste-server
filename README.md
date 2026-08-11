@@ -174,3 +174,7 @@ calling `next` directly.
 | `Ctrl` + `E` | Edit (creates a new paste — the original isn't overwritten) |
 | `Alt` + `R` | View raw |
 | `Ctrl` + `Shift` + `S` | Share / copy link |
+
+## License
+
+[MIT](LICENSE)
