@@ -15,8 +15,7 @@ handing off to a jQuery-era static frontend, all untyped CommonJS with almost
 no test coverage. This fork replaces that entirely while staying compatible
 with it:
 
-- **New UI.** A React/Next.js editor and viewer ported from
-  [idkso-next](https://github.com/gradippp/idkso-next): highlight.js syntax
+- **New UI.** A React/Next.js editor and viewer: highlight.js syntax
   highlighting with a scroll-synced line-number gutter, the catppuccin theme,
   drag-and-drop file upload, language auto-detect, a mobile-friendly footer,
   and keyboard shortcuts for save/new/edit/raw/share (see
