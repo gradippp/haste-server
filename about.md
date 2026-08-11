@@ -1,61 +1,65 @@
 # Haste
 
-Sharing code is a good thing, and it should be _really_ easy to do it.
-A lot of times, I want to show you something I'm seeing - and that's where we
-use pastebins.
-
-Haste is the prettiest, easiest to use pastebin ever made.
+Sharing code is a good thing, and it should be _really_ easy to do it. A lot
+of times, you want to show someone something you're seeing — and that's what
+pastebins are for.
 
 ## Basic Usage
 
-Type what you want me to see, click "Save", and then copy the URL.  Send that
+Type what you want someone to see, click "Save", and copy the URL. Send that
 URL to someone and they'll see what you see.
 
-To make a new entry, click "New" (or type 'control + n')
+To start a new paste, click "New" (or press `Alt` + `N`).
+
+## Keyboard shortcuts
+
+| Keys | Action |
+|---|---|
+| `Ctrl` + `S` | Save |
+| `Alt` + `N` | New paste |
+| `Ctrl` + `E` | Edit (creates a new paste — the original isn't overwritten) |
+| `Alt` + `R` | View raw |
+| `Ctrl` + `Shift` + `S` | Share / copy link |
 
 ## From the Console
 
-Most of the time I want to show you some text, it's coming from my current
-console session.  We should make it really easy to take code from the console
-and send it to people.
+The original `/documents` and `/raw` API is still here, so anything that
+worked against haste-server before still works against this instance:
 
-`cat something | haste` # https://hastebin.com/1238193
+```
+cat something | curl -s -X POST --data-binary @- https://this-host/documents
+```
 
-You can even take this a step further, and cut out the last step of copying the
-URL with:
+or, with the classic `haste-client`, `cat something | haste`.
 
-* osx: `cat something | haste | pbcopy`
-* linux: `cat something | haste | xsel -b`
-* windows: check out [WinHaste](https://github.com/ajryan/WinHaste)
+## Deleting a paste
 
-After running that, the STDOUT output of `cat something` will show up at a URL
-which has been conveniently copied to your clipboard.
-
-That's all there is to that, and you can install it with `gem install haste`
-right now.
-  * osx: you will need to have an up to date version of Xcode
-  * linux: you will need to have rubygems and ruby-devel installed
-
-## Duration
-
-Pastes will stay for 30 days from their last view.  They may be removed earlier
-and without notice.
+Pastes made anonymously can be deleted by whoever created them, from the
+browser they created it in — a "Delete" button appears on the paste's page.
+There are no accounts; that revocation right is the only ownership this
+server tracks.
 
 ## Privacy
 
-While the contents of hastebin.com are not directly crawled by any search robot
-that obeys "robots.txt", there should be no great expectation of privacy.  Post
-things at your own risk. Not responsible for any loss of data or removed
-pastes.
+Post things at your own risk — there's no expectation of privacy, and pastes
+may be removed by the operator at any time and without notice.
 
-## Open Source
+## About this fork
 
-Haste can easily be installed behind your network, and it's all open source!
+This instance runs [gradippp/haste-server](https://github.com/gradippp/haste-server),
+a fork and rewrite of the original
+[haste-server](https://github.com/toptal/haste-server) by John Crepezzi. It
+replaces the original's plain-JavaScript server and static frontend with a
+single Next.js/TypeScript application — new editor and viewer UI, all storage
+backends and key generators ported to TypeScript, a test suite, and a
+modernized Docker setup — while keeping the original `/documents` and `/raw`
+API compatible, so existing clients and scripts keep working unmodified. See
+the repository's README for the full list of what changed.
+
+## Original project
 
 * [haste-client](https://github.com/seejohnrun/haste-client)
-* [haste-server](https://github.com/seejohnrun/haste-server)
+* [haste-server](https://github.com/toptal/haste-server)
 
-## Author
-
-Code by John Crepezzi <john.crepezzi@gmail.com>
-Key Design by Brian Dawson <bridawson@gmail.com>
+Original code by John Crepezzi <john.crepezzi@gmail.com>.
+Original key design by Brian Dawson <bridawson@gmail.com>.
