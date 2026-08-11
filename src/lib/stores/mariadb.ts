@@ -9,13 +9,16 @@ interface MySqlConnection {
 }
 
 interface MySqlModule {
+  // Note the Promise: unlike the callback API's synchronous
+  // `mysql.createConnection()`, the promise API resolves a connection.
+  // Getting this wrong is silent — the shim is what tsc checks against.
   createConnection(config: {
     host?: string;
     user?: string;
     port: number;
     password?: string;
     database?: string;
-  }): MySqlConnection;
+  }): Promise<MySqlConnection>;
 }
 
 interface EntryRow {
@@ -67,7 +70,10 @@ export class MariaDbDocumentStore implements DocumentStore {
     return this.modPromise;
   }
 
-  private async doLoadDriver(): Promise<MySqlModule> {
+  // Protected so tests can substitute a fake driver — this store can't
+  // otherwise be exercised without a live database, which is how a broken
+  // connection path shipped once already.
+  protected async doLoadDriver(): Promise<MySqlModule> {
     const driverName = "mysql2/promise";
     try {
       return (await import(
@@ -82,17 +88,27 @@ export class MariaDbDocumentStore implements DocumentStore {
 
   private async safeConnect(): Promise<MySqlConnection> {
     const mod = await this.loadDriver();
-    const connection = mod.createConnection(this.connectionConfig);
+    const connection = await mod.createConnection(this.connectionConfig);
 
-    await connection.query(
-      `CREATE TABLE IF NOT EXISTS entries (
+    // If the table check fails the connection is already open but hasn't
+    // been handed to the caller yet, so the caller's `finally` can't close
+    // it. Close it here or it leaks on every failure.
+    try {
+      await connection.query(
+        `CREATE TABLE IF NOT EXISTS entries (
          entry_id   VARCHAR(255) PRIMARY KEY,
          value      LONGTEXT NOT NULL,
          expiration INT NOT NULL,
          INDEX idx_expiration (expiration)
        )`,
-      []
-    );
+        []
+      );
+    } catch (error) {
+      await connection.end().catch(() => {
+        // Already failing; the original error is the useful one.
+      });
+      throw error;
+    }
 
     return connection;
   }
