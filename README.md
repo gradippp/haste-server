@@ -8,6 +8,48 @@ API are the same server, the storage backends and key generators carried over,
 and the original `/documents` API still works so existing CLI clients keep
 running.
 
+## What this fork adds
+
+The original haste-server was a `connect`-based Node server (`server.js`)
+handing off to a jQuery-era static frontend, all untyped CommonJS with almost
+no test coverage. This fork replaces that entirely while staying compatible
+with it:
+
+- **New UI.** A React/Next.js editor and viewer ported from
+  [idkso-next](https://github.com/gradippp/idkso-next): highlight.js syntax
+  highlighting with a scroll-synced line-number gutter, the catppuccin theme,
+  drag-and-drop file upload, language auto-detect, a mobile-friendly footer,
+  and keyboard shortcuts for save/new/edit/raw/share (see
+  [Keyboard shortcuts](#keyboard-shortcuts) below).
+- **TypeScript throughout.** The server, all nine storage backends, both key
+  generators, and the document/config/rate-limit logic are typed and
+  type-checked in CI — no more callback-based untyped JS.
+- **One process, one language.** UI and API are the same Next.js app; there's
+  no separate static file server or backend process to run or deploy.
+- **A new `/api/pastes*` API** backing the UI, with per-paste deletion
+  authorized by a revocation key (see [API](#api) below) — the original API
+  had no delete at all. The legacy `/documents` and `/raw` routes are
+  untouched, so existing scripts, editor plugins, and CLI tools keep working
+  unmodified.
+- **Fixed config.** `docker-entrypoint.sh` used to write `config.js` while the
+  server read `config.json`, so environment-variable overrides silently never
+  applied. That's fixed — see [Configuration](#configuration).
+- **A real test suite.** Vitest unit and route-handler tests plus Playwright
+  end-to-end tests, run in CI on every push (see
+  [Development](#development)).
+- **Hardened storage.** Every store now validates the paste id before
+  building a filesystem/database key, closing a path-traversal gap the file
+  store previously had; key generation uses `crypto.randomInt()` instead of
+  `Math.random()`.
+- **Modernized Docker.** A multi-stage `node:22-alpine` build running as
+  non-root, with `docker-compose.yaml` defaulting to redis instead of the
+  unmaintained memcached image, and commented-out blocks for postgres,
+  mariadb, mongo, and memcached (see [Docker](#docker)).
+
+Everything else — the nine storage backends, phonetic/random/dictionary key
+generation, the `/documents` and `/raw` API shape, expiry semantics — carries
+over from upstream haste-server.
+
 ## Quick start
 
 ```bash
